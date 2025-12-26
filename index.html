@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>报价决策实验室 V6.0 (Mobile) - 移动专业版</title>
+    <style>
+        /* --- Base Styles (V6.0 Mobile Optimized) --- */
+        :root {
+            --primary-color: #0f172a;
+            --accent-color: #3b82f6;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-main: #334155;
+            --text-light: #64748b;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Remove mobile tap highlight */
+        }
+        
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-main); 
+            line-height: 1.5; 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+        }
+
+        /* --- Layout --- */
+        header { 
+            background-color: var(--primary-color); 
+            color: white; 
+            padding: 0.8rem 1rem; 
+            display: none; /* Hidden initially */
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: var(--shadow); 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+        
+        .brand h1 { font-size: 1rem; font-weight: 600; line-height: 1.2; }
+        .brand span { color: var(--accent-color); font-size: 0.7rem; display: block; font-weight: 400; }
+        
+        /* Header Right Layout */
+        .header-controls { display: flex; align-items: center; gap: 0.8rem; }
+        
+        .game-status { display: flex; gap: 0.8rem; align-items: center; font-size: 0.8rem; }
+        .mode-display { font-size: 0.7rem; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 4px; }
+        .level-badge { background: var(--accent-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+        .level-badge.l1 { background: #10b981; }
+        .level-badge.l2 { background: #f59e0b; color: #000; }
+        .level-badge.l3 { background: #ef4444; }
+
+        .status-item strong { color: var(--accent-color); font-size: 1rem; }
+        
+        /* Exit Button Style */
+        .btn-exit { 
+            background: transparent; 
+            border: 1px solid rgba(255,255,255,0.3); 
+            color: white; 
+            padding: 0.3rem 0.8rem; 
+            border-radius: 6px; 
+            font-size: 0.8rem; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            display: flex; 
+            align-items: center; 
+            gap: 0.3rem;
+        }
+        .btn-exit:hover { background: rgba(239, 68, 68, 0.2); border-color: var(--danger-color); color: #fecaca; }
+
+        main { 
+            flex: 1; 
+            padding: 1rem; 
+            max-width: 100%; /* Mobile Full Width */
+            margin: 0 auto; 
+            width: 100%; 
+            display: none; 
+            grid-template-columns: 1fr; /* Default mobile stack */
+            gap: 1.5rem; 
+        }
+
+        /* --- Desktop/Tablet Layout --- */
+        @media (min-width: 900px) {
+            main { grid-template-columns: 1fr 1fr; max-width: 1200px; padding: 2rem; }
+            header { padding: 0.8rem 2rem; }
+        }
+
+        /* --- Cards --- */
+        .card { background: var(--card-bg); border-radius: var(--border-radius); padding: 1.5rem; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 1.2rem; }
+        .card-header { border-bottom: 1px solid #e2e8f0; padding-bottom: 0.8rem; margin-bottom: 0.2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+        .card-title { font-size: 1rem; font-weight: 600; color: var(--primary-color); display: flex; align-items: center; gap: 0.4rem; }
+
+        /* --- Inquiry Visuals --- */
+        .inquiry-paper { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 1rem; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; position: relative; }
+        .inquiry-paper::before { content: "询价单"; position: absolute; top: -8px; right: 15px; background: var(--text-light); color: white; padding: 2px 6px; font-size: 0.65rem; font-weight: bold; border-radius: 2px; }
+        .data-row { display: flex; margin-bottom: 0.6rem; border-bottom: 1px dashed #e2e8f0; padding-bottom: 0.3rem; flex-wrap: wrap; }
+        .data-label { width: 100px; font-weight: bold; color: var(--text-light); flex-shrink: 0; }
+        .data-value { flex: 1; color: var(--primary-color); min-width: 120px; }
+        .highlight-bad { color: var(--danger-color); font-weight: bold; animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
+
+        /* --- Interaction --- */
+        .strategy-options { display: grid; grid-template-columns: 1fr; /* Mobile: Stack vertical */ gap: 0.8rem; }
+        
+        @media (min-width: 600px) {
+            .strategy-options { grid-template-columns: repeat(3, 1fr); } /* Tablet/Desktop: 3 cols */
+        }
+
+        .strategy-btn { 
+            background: white; 
+            border: 2px solid #e2e8f0; 
+            border-radius: 8px; 
+            padding: 1rem; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            text-align: center; 
+            position: relative; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center;
+            touch-action: manipulation; /* Improves touch response */
+        }
+        .strategy-btn:active { transform: scale(0.98); background-color: #f1f5f9; }
+        .strategy-btn.selected { background-color: #eff6ff; border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+        .strategy-btn h4 { margin-bottom: 0.4rem; font-size: 0.95rem; color: var(--primary-color); }
+        .strategy-btn p { font-size: 0.75rem; color: var(--text-light); line-height: 1.3; }
+
+        .checkbox-group { display: grid; grid-template-columns: 1fr; /* Mobile: 1 col */ gap: 0.5rem; }
+        
+        @media (min-width: 600px) {
+            .checkbox-group { grid-template-columns: 1fr 1fr; }
+        }
+
+        .checkbox-label { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            font-size: 0.9rem; 
+            cursor: pointer; 
+            padding: 0.6rem; 
+            border-radius: 6px; 
+            background: #f8fafc; 
+            border: 1px solid transparent;
+            touch-action: manipulation;
+        }
+        .checkbox-label:active { background: #e2e8f0; }
+        .checkbox-label input[type="checkbox"] { width: 20px; height: 20px; accent-color: var(--accent-color); flex-shrink: 0; }
+
+        textarea { 
+            width: 100%; 
+            padding: 0.8rem; 
+            border: 1px solid #cbd5e1; 
+            border-radius: 8px; 
+            resize: vertical; 
+            min-height: 100px; 
+            font-size: 1rem; /* Larger font for mobile typing */ 
+            transition: border 0.2s; 
+            line-height: 1.5;
+        }
+        textarea:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+
+        .action-area { margin-top: auto; padding-top: 1rem; }
+        .btn-primary { 
+            width: 100%; 
+            padding: 1rem; 
+            background: var(--accent-color); 
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 1rem; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: background 0.2s; 
+            touch-action: manipulation;
+        }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-primary:disabled { background: #94a3b8; cursor: not-allowed; }
+
+        .policy-note { font-size: 0.75rem; color: var(--text-light); margin-top: 0.8rem; padding-top: 0.8rem; border-top: 1px dashed #e2e8f0; font-style: italic; }
+
+        /* --- Modal & Feedback --- */
+        .modal-overlay { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(15, 23, 42, 0.8); 
+            backdrop-filter: blur(4px); 
+            display: none; 
+            justify-content: center; 
+            align-items: center; 
+            z-index: 1000; 
+            opacity: 0; 
+            transition: opacity 0.3s; 
+            padding: 1rem; /* Safe area for mobile */
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content { 
+            background: white; 
+            width: 100%; 
+            max-width: 500px; /* Constrain width for readability */
+            border-radius: var(--border-radius); 
+            padding: 1.5rem; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); 
+            transform: scale(0.9); 
+            transition: transform 0.3s; 
+            max-height: 90vh; 
+            overflow-y: auto; 
+            display: flex; flex-direction: column;
+        }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+
+        .score-circle { 
+            width: 80px; 
+            height: 80px; 
+            border-radius: 50%; 
+            background: var(--primary-color); 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0 auto 1rem auto; 
+            border: 4px solid #e2e8f0; 
+            flex-shrink: 0; 
+        }
+        .score-number { font-size: 2rem; font-weight: 700; line-height: 1; }
+        .score-total { font-size: 0.7rem; opacity: 0.8; }
+
+        .feedback-section { margin-bottom: 0.8rem; padding: 0.8rem; background: #f8fafc; border-radius: 8px; border-left: 4px solid var(--text-light); font-size: 0.9rem; }
+        .feedback-section.success { border-left-color: var(--success-color); background: #f0fdf4; }
+        .feedback-section.warning { border-left-color: var(--warning-color); background: #fffbeb; }
+        .feedback-section.error { border-left-color: var(--danger-color); background: #fef2f2; }
+        .feedback-section.outcome { background: #eff6ff; border-left: 4px solid var(--accent-color); font-weight: 500; }
+        .feedback-section.block { background: #fef2f2; border: 2px solid var(--danger-color); color: #7f1d1d; }
+        .feedback-section.authority { background: #1e293b; color: white; text-align: center; border: 2px solid #334155; margin-bottom: 1rem; }
+
+        .feedback-title { font-weight: 700; margin-bottom: 0.3rem; display: block; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.05em; }
+
+        .score-breakdown { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; padding: 0.8rem; background: #f8fafc; border-radius: 8px; }
+        .breakdown-item { display: flex; justify-content: space-between; font-size: 0.85rem; }
+
+        .next-btn { background: var(--primary-color); color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: block; width: 100%; margin-top: 0.5rem; touch-action: manipulation; }
+        .btn-restart { background: white; border: 1px solid var(--text-light); color: var(--text-main); margin-top: 0.5rem;}
+
+        /* --- Intro & Mode Selection (V5.2 Refined) --- */
+        #intro-screen { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: var(--bg-color); 
+            z-index: 500; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 1rem; 
+            overflow-y: auto;
+        }
+        
+        .intro-wrapper { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 1.5rem; align-items: center; }
+        
+        .intro-card { background: white; padding: 1.5rem; border-radius: var(--border-radius); box-shadow: var(--shadow); width: 100%; display: flex; flex-direction: column; gap: 1.2rem; }
+        
+        .level-grid { display: grid; grid-template-columns: 1fr; /* Mobile Stack */ gap: 0.8rem; }
+        
+        @media (min-width: 600px) {
+            .level-grid { grid-template-columns: 1fr 1fr 1fr; text-align: center; }
+        }
+
+        .level-box { padding: 0.8rem; border-radius: 8px; font-size: 0.85rem; text-align: left; border: 1px solid #e2e8f0; }
+        .level-box h4 { margin-bottom: 0.3rem; font-size: 0.9rem; }
+        .lvl-1 { background: #d1fae5; color: #065f46; }
+        .lvl-2 { background: #fef3c7; color: #92400e; }
+        .lvl-3 { background: #fee2e2; color: #991b1b; }
+
+        /* V5.2 Action Buttons Group */
+        .action-buttons-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (min-width: 600px) {
+            .action-buttons-group { grid-template-columns: 1fr 1fr; }
+        }
+
+        .btn-mode {
+            padding: 1.2rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        
+        .btn-mode:active { transform: scale(0.98); }
+
+        .btn-mode.training {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #2563eb 100%);
+            color: white;
+        }
+        .btn-mode.assessment {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            border: 1px solid #334155;
+        }
+
+        .btn-mode h3 { font-size: 1.1rem; margin: 0; }
+        .btn-mode p { font-size: 0.8rem; opacity: 0.9; margin: 0; }
+
+        /* Manual Button */
+        .btn-manual {
+            margin: 0.5rem auto 0;
+            background: transparent;
+            border: 1px dashed var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.85rem;
+            touch-action: manipulation;
+        }
+        .btn-manual:active { background: #eff6ff; }
+
+        /* --- Manual / Instruction Page Styles --- */
+        .manual-container { 
+            position: fixed; /* Changed to fixed for mobile full screen */
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: white; 
+            z-index: 600; 
+            padding: 1rem; 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.3s ease;
+            overflow-y: auto; 
+            box-sizing: border-box;
+        }
+        .manual-container.active { display: block; opacity: 1; }
+        .manual-content-wrapper { max-width: 800px; margin: 0 auto; padding-bottom: 3rem; }
+        .manual-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #e2e8f0; position: sticky; top: 0; background: white; z-index: 10; }
+        .manual-back { background: var(--bg-color); border: 1px solid #cbd5e1; color: var(--text-main); padding: 0.4rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.2s; font-size: 0.85rem; touch-action: manipulation; }
+        .instruction-section { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px dashed #e2e8f0; }
+        .instruction-section h2 { font-size: 1.2rem; color: var(--primary-color); margin-bottom: 0.8rem; display: flex; align-items: center; gap: 0.5rem; }
+        .instruction-section h3 { font-size: 1rem; color: var(--primary-color); margin-bottom: 0.6rem; margin-top: 1.2rem; border-left: 4px solid var(--accent-color); padding-left: 0.6rem; }
+        .instruction-section ul { margin: 0.5rem 0 0 1.2rem; font-size: 0.9rem; color: var(--text-main); list-style-type: circle; }
+        .instruction-section ul li { margin-bottom: 0.5rem; line-height: 1.5; }
+        .instruction-section p { margin-bottom: 0.8rem; color: var(--text-main); font-size: 0.9rem; line-height: 1.6; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.85rem; background: white; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+        table th, table td { border: 1px solid #e2e8f0; padding: 0.6rem; text-align: left; }
+        table th { background: #f8fafc; font-weight: 600; }
+        .note { background: #fff7ed; border-left: 4px solid var(--warning-color); padding: 0.8rem 1rem; margin-top: 1rem; font-size: 0.85rem; color: #9a3412; border-radius: 4px; }
+
+        /* --- Session Summary Screen Styles --- */
+        #summary-screen { display: none; padding: 1rem; width: 100%; }
+        .summary-container { background: white; border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 1.5rem; }
+        .summary-header { text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 1.5rem; margin-bottom: 1.5rem; }
+        .summary-header h1 { font-size: 1.5rem; }
+        .summary-grid { display: grid; grid-template-columns: 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+        
+        @media (min-width: 600px) {
+            .summary-grid { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+        }
+
+        .summary-module { background: #f8fafc; padding: 1.2rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .module-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light); margin-bottom: 0.8rem; font-weight: 700; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 0.4rem; font-size: 0.9rem; }
+        .stat-value { font-weight: 600; }
+        .stat-value.red { color: var(--danger-color); }
+        .stat-value.green { color: var(--success-color); }
+        .authority-block { background: var(--primary-color); color: white; padding: 1.5rem; border-radius: 12px; text-align: center; margin-top: 1.5rem; }
+        .authority-status { font-size: 1.5rem; font-weight: 800; margin: 0.8rem 0; }
+        .authority-sub { font-size: 0.9rem; opacity: 0.9; }
+        .authority-scope { margin-top: 0.8rem; font-size: 0.8rem; background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; display: inline-block; border-radius: 4px; }
+        .cap-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px dashed #e2e8f0; }
+        footer { text-align: center; padding: 1rem; color: var(--text-light); font-size: 0.7rem; background: white; border-top: 1px solid #e2e8f0; margin-top: auto; }
+    </style>
+</head>
+<body>
+
+    <!-- Intro Screen (Mobile Optimized) -->
+    <div id="intro-screen">
+        
+        <!-- Instruction / Manual Container (Overlay) -->
+        <div class="manual-container" id="manual-view">
+            <div class="manual-content-wrapper">
+                <div class="manual-nav">
+                    <button class="manual-back" onclick="game.backToMenu()">
+                        ⬅ 返回主菜单
+                    </button>
+                    <h2 style="margin: 0; font-size: 1.1rem;">系统说明书</h2>
+                    <div style="width: 60px;"></div> <!-- Spacer for balance -->
+                </div>
+                
+                <div class="instruction-section">
+                    <h2>一、系统设立背景与目的</h2>
+                    <p>在项目型、定制化及跨境业务中，报价行为直接影响公司以下核心风险：回款风险、利润侵蚀风险、交付与违约风险。</p>
+                    <ul>
+                        <li><strong>训练模式：</strong> 显示风险提示、显示完整评分拆解、仅用于能力训练。</li>
+                        <li><strong>评估模式：</strong> 不显示过程性风险提示、强制包含高风险场景、输出明确授权结论。</li>
+                    </ul>
+                </div>
+                
+                <div class="instruction-section">
+                    <h2>二、场景与分级设计</h2>
+                    <table>
+                        <tr><th>等级</th><th>定位</th><th>核心考察点</th></tr>
+                        <tr><td>Level 1</td><td>基础级</td><td>避免明显报价错误、建立基本风险意识</td></tr>
+                        <tr><td>Level 2</td><td>熟练级</td><td>在价格、风险与成交概率之间权衡</td></tr>
+                        <tr><td>Level 3</td><td>骨干级</td><td>具备系统性风险控制与复杂场景判断能力</td></tr>
+                    </table>
+                </div>
+
+                <div class="instruction-section">
+                    <h2>三、评估结果与权限映射</h2>
+                    <ul>
+                        <li><span style="color:var(--success-color); font-weight:bold;">APPROVED：</span> 具备独立报价能力</li>
+                        <li><span style="color:var(--warning-color); font-weight:bold;">REVIEW REQUIRED：</span> 需主管复核</li>
+                        <li><span style="color:var(--danger-color); font-weight:bold;">NOT APPROVED：</span> 不具备独立报价资格</li>
+                    </ul>
+                    <div class="note">需连续 2 次 Assessment 通过，方可授予长期报价权限。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div class="intro-wrapper">
+            <div class="intro-card" id="menu-view">
+                <div style="text-align:center; margin-bottom:0.5rem;">
+                    <h1 style="color: var(--primary-color); margin-bottom: 0.5rem; font-size: 1.6rem;">商业报价决策实验室</h1>
+                    <p style="color: var(--text-light); font-size: 0.95rem;">报价能力评估与风险控制系统 V6.0 Mobile</p>
+                </div>
+
+                <div class="action-buttons-group">
+                    <button class="btn-mode training" onclick="game.start('training')">
+                        <span style="font-size: 1.8rem;">🎓</span>
+                        <h3>开始训练模式</h3>
+                        <p>显示实时风险提示<br>包含详细评分解析</p>
+                    </button>
+
+                    <button class="btn-mode assessment" onclick="game.start('assessment')">
+                        <span style="font-size: 1.8rem;">📝</span>
+                        <h3>开始评估模式</h3>
+                        <p>无过程提示<br>包含高风险必考题</p>
+                    </button>
+                </div>
+
+                <div class="level-grid">
+                    <div class="level-box lvl-1">
+                        <h4>Level 1<br>基础级</h4>
+                        <span style="font-size:0.75rem">建立基本风险意识</span>
+                    </div>
+                    <div class="level-box lvl-2">
+                        <h4>Level 2<br>熟练级</h4>
+                        <span style="font-size:0.75rem">权衡价格与风险</span>
+                    </div>
+                    <div class="level-box lvl-3">
+                        <h4>Level 3<br>骨干级</h4>
+                        <span style="font-size:0.75rem">复杂场景判断</span>
+                    </div>
+                </div>
+
+                <button class="btn-manual" onclick="game.showManual()">
+                    📖 查看系统说明书
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Interface -->
+    <header id="game-header" class="game-header">
+        <div class="brand">
+            <h1>报价决策实验室</h1>
+            <span id="header-mode-text">训练模式</span>
+        </div>
+        
+        <div class="header-controls">
+            <div class="game-status">
+                <div class="mode-display" id="mode-display">TRAINING</div>
+                <div class="level-badge l1" id="level-badge">L1</div>
+                <div class="status-item" style="font-size:0.8rem; display:flex; flex-direction:column; align-items:end; line-height:1;">
+                    <span style="color:#94a3b8; font-size:0.6rem;">进度</span>
+                    <strong id="round-display">1/3</strong>
+                </div>
+            </div>
+            
+            <!-- Compact Exit Button for Mobile -->
+            <button class="btn-exit" onclick="game.exit()">
+                <span>✕</span>
+            </button>
+        </div>
+    </header>
+
+    <main id="game-main" class="game-main">
+        <!-- Left: Inquiry Info (Becomes Top on Mobile) -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">📄 客户询价单</div>
+                <div style="font-size:0.75rem; color:var(--text-light); background:#f1f5f9; padding:2px 6px; border-radius:4px;" id="scenario-id">L1-01</div>
+            </div>
+            
+            <div id="inquiry-container">
+                <!-- Content injected by JS -->
+            </div>
+
+            <!-- Mentor Hint -->
+            <div id="mentor-container" style="margin-top: 0.5rem; padding: 0.8rem; background: #fff7ed; border-left: 4px solid #f97316; font-size: 0.8rem; color: #9a3412; border-radius: 4px;">
+                <strong>💡 风险提示：</strong> <span id="mentor-hint">Loading...</span>
+            </div>
+        </section>
+
+        <!-- Right: Decision Making (Becomes Bottom on Mobile) -->
+        <section class="card">
+            <div class="card-header">
+                <div class="card-title">🎯 报价决策</div>
+            </div>
+
+            <!-- Step 1: Strategy -->
+            <div>
+                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Step 1：选择报价策略</label>
+                <div class="strategy-options">
+                    <div class="strategy-btn" onclick="game.selectStrategy('aggressive', this)">
+                        <h4>激进型策略</h4>
+                        <p>以提高中标概率为优先，接受较低利润空间</p>
+                    </div>
+                    <div class="strategy-btn" onclick="game.selectStrategy('balanced', this)">
+                        <h4>平衡型策略</h4>
+                        <p>在利润、风险与成交概率之间保持平衡</p>
+                    </div>
+                    <div class="strategy-btn" onclick="game.selectStrategy('conservative', this)">
+                        <h4>保守型策略</h4>
+                        <p>以风险控制与利润安全为优先，降低中标概率</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Conditions -->
+            <div style="margin-top: 1.2rem;">
+                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Step 2：风险控制条款选择</label>
+                <div class="checkbox-group">
+                    <label class="checkbox-label" onchange="game.updateMentorHint()">
+                        <input type="checkbox" value="validity"> 报价有效期说明
+                    </label>
+                    <label class="checkbox-label" onchange="game.updateMentorHint()">
+                        <input type="checkbox" value="payment_spec"> 明确付款条件
+                    </label>
+                    <label class="checkbox-label" onchange="game.updateMentorHint()">
+                        <input type="checkbox" value="tech_clarify"> 补充/确认技术参数
+                    </label>
+                    <label class="checkbox-label" onchange="game.updateMentorHint()">
+                        <input type="checkbox" value="delivery_cond"> 交期以订单确认或技术澄清为前提
+                    </label>
+                </div>
+                <div class="policy-note">
+                    说明：系统将根据客户信息完整性与风险等级，自动判断是否存在“必须补充的风险控制条款”。
+                </div>
+            </div>
+
+            <!-- Step 3: Explanation -->
+            <div style="margin-top: 1.2rem; flex: 1;">
+                <label style="font-weight: 600; font-size: 0.9rem; display: block; margin-bottom: 0.5rem;">Step 3：报价决策说明</label>
+                <textarea id="user-explanation" placeholder="请说明：&#10;• 选择该报价策略的主要原因&#10;• 风险点识别及应对方式&#10;• 价格、风险与成交概率之间的判断逻辑"></textarea>
+            </div>
+
+            <div class="action-area">
+                <button id="submit-btn" class="btn-primary" onclick="game.submitQuote()" disabled>提交报价决策</button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Summary Screen -->
+    <div id="summary-screen" class="summary-screen">
+        <div class="summary-container">
+            <div class="summary-header">
+                <h1 style="color: var(--primary-color);">评估结果报告</h1>
+                <p style="color: var(--text-light); margin-top: 0.5rem; font-size: 0.9rem;">报价决策能力与风险控制综合分析</p>
+            </div>
+
+            <div id="summary-content">
+                <!-- JS Generated Content -->
+            </div>
+            
+            <div style="text-align:center; margin-top: 1.5rem;">
+                 <button class="next-btn btn-restart" onclick="game.exit()">返回主菜单</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Modal -->
+    <div class="modal-overlay" id="feedback-modal">
+        <div class="modal-content">
+            <div class="score-circle">
+                <div class="score-number" id="modal-score">0</div>
+                <div class="score-total">/ 100</div>
+            </div>
+            <h3 style="text-align: center; margin-bottom: 1rem; font-weight: 600; font-size: 1.1rem;">评估反馈</h3>
+            <div id="assessment-disclaimer" style="display:none; font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.8rem; text-align: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
+                说明：评估模式下不展示过程性评分，仅展示最终结论。
+            </div>
+            <div id="feedback-container"></div>
+            <div class="score-breakdown" id="detail-scores" style="margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 0.8rem;">
+                <div class="breakdown-item"><span>策略评分:</span> <strong id="score-strategy">0/30</strong></div>
+                <div class="breakdown-item"><span>风控评分:</span> <strong id="score-risk">0/25</strong></div>
+                <div class="breakdown-item"><span>条款评分:</span> <strong id="score-conditions">0/15</strong></div>
+                <div class="breakdown-item"><span>逻辑评分:</span> <strong id="score-explanation">0/30</strong></div>
+            </div>
+            <div style="margin-top: 1.2rem;">
+                <button class="next-btn" id="next-round-btn" onclick="game.nextRound()">下一题</button>
+                <button class="next-btn btn-restart" id="finish-btn" onclick="game.finish()" style="display: none;">查看最终报告</button>
+            </div>
+        </div>
+    </div>
+
+    <footer id="game-footer">
+        <p>© 2025 西安泰金新能源科技有限公司 - 内部报价能力评估系统</p>
+    </footer>
+
+    <script>
+        const scenarios = [
+            // --- Level 1 ---
+            { id: "L1-01", level: 1, customer: "European EPC Contractor", application: "Oil & Gas Pipeline CP", product: "MMO Tubular Anodes", quantity: "120 pcs", delivery: "8–10 weeks", payment: "Not specified", targetPrice: "Comparing suppliers", additionalInfo: "Project-based EPC, limited technical details", hint: "未指定付款条款是主要潜在风险。", logic: { riskLevel: "high", optimalStrategy: "balanced", requiredConditions: ["payment_spec"], bonusConditions: ["tech_clarify"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-02", level: 1, customer: "Eastern Europe CP Service", application: "Pipeline Maintenance", product: "MMO Ribbon Anodes", quantity: "2,000 m", delivery: "6–8 weeks", payment: "T/T 30% advance, 70% before shipment", targetPrice: "Price sensitive", additionalInfo: "Repeat purchasing history", hint: "长期合作并不代表可以放弃利润。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: [], bonusConditions: ["validity"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-03", level: 1, customer: "SE Asia Infrastructure EPC", application: "Bridge CP", product: "MMO Plate Anodes", quantity: "200 pcs", delivery: "8 weeks", payment: "Not specified", targetPrice: "Lowest price preferred", additionalInfo: "Highly price-driven project", hint: "低价项目仍需保障底线利润。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-04", level: 1, customer: "European CP Distributor", application: "Stock Supply", product: "Standard MMO Anodes", quantity: "Rolling orders", delivery: "Rolling delivery", payment: "T/T 30 days", targetPrice: "Margin focused", additionalInfo: "Multiple suppliers available", hint: "分销商重视稳定性与清晰度。", logic: { riskLevel: "low", optimalStrategy: "balanced", requiredConditions: [], bonusConditions: ["validity"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-05", level: 1, customer: "Pool System Integrator", application: "Pool Disinfection", product: "Small Hypochlorite Generator", quantity: "20 units", delivery: "4–6 weeks", payment: "T/T before shipment", targetPrice: "Price sensitive", additionalInfo: "Standard configuration", hint: "标准化市场允许有限度的激进报价。", logic: { riskLevel: "low", optimalStrategy: "aggressive", requiredConditions: [], bonusConditions: ["validity"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-06", level: 1, customer: "Asia Water Treatment EPC", application: "Municipal Disinfection", product: "Water Treatment MMO Anodes", quantity: "1 project set", delivery: "10–12 weeks", payment: "Not specified", targetPrice: "Budget limited", additionalInfo: "First cooperation", hint: "首单需要谨慎，而非赌博。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["payment_spec"], bonusConditions: ["tech_clarify"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-07", level: 1, customer: "South America Oilfield Supp", application: "Tank Bottom CP", product: "MMO Canister Anodes", quantity: "60 pcs", delivery: "Flexible", payment: "T/T before shipment", targetPrice: "Comparing local suppliers", additionalInfo: "Logistics uncertainty", hint: "物流风险应计入成本。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["delivery_cond"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-08", level: 1, customer: "European Municipal EPC", application: "Drinking Water", product: "Cell + MMO Anodes", quantity: "1 system", delivery: "12 weeks", payment: "Tender based, not finalized", targetPrice: "Budget controlled", additionalInfo: "Tender documentation heavy", hint: "在范围明确前，切勿锁定价格。", logic: { riskLevel: "high", optimalStrategy: "balanced", requiredConditions: ["tech_clarify"], bonusConditions: ["payment_spec"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L1-09", level: 1, customer: "Existing CP Customer", application: "Routine Replacement", product: "MMO Tubular Anodes", quantity: "40 pcs", delivery: "6 weeks", payment: "As previous orders", targetPrice: "Expect similar price", additionalInfo: "Stable relationship", hint: "一致性比压榨利润更重要。", logic: { riskLevel: "low", optimalStrategy: "balanced", requiredConditions: [], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L1-10", level: 1, customer: "Unknown Client", application: "CP System (Unclear)", product: "MMO Anodes", quantity: "Not specified", delivery: "Urgent", payment: "Not mentioned", targetPrice: "As low as possible", additionalInfo: "Very limited information", hint: "信息缺失等于最大风险。", logic: { riskLevel: "high", optimalStrategy: "balanced", requiredConditions: ["tech_clarify", "payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            // --- Level 2 ---
+            { id: "L2-11", level: 2, customer: "Middle East Oil EPC", application: "Onshore Pipeline CP", product: "Deep Groundbed Anodes", quantity: "1 complete set", delivery: "12–16 weeks", payment: "Milestone (not finalized)", targetPrice: "Under review", additionalInfo: "Strict inspection required", hint: "大型项目会放大小错误的影响。", logic: { riskLevel: "high", optimalStrategy: "conservative", requiredConditions: ["payment_spec", "delivery_cond"], bonusConditions: ["tech_clarify"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L2-12", level: 2, customer: "Eastern Europe CP Cont", application: "Pipeline CP Install", product: "MMO Tubular Anodes", quantity: "90 pcs", delivery: "8 weeks", payment: "T/T 30% adv, bal on del", targetPrice: "Competitor price avail", additionalInfo: "Project award pending", hint: "赢取项目不等于获取利润。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: [], bonusConditions: ["validity"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L2-13", level: 2, customer: "European Water OEM", application: "Equipment Integration", product: "Electro-Chlorination Cell", quantity: "50 units/yr", delivery: "Rolling delivery", payment: "Net 45 days", targetPrice: "Target cost required", additionalInfo: "Potential long-term agreement", hint: "OEM 业务奖励的是稳定性，而非一次性利润。", logic: { riskLevel: "medium", optimalStrategy: "aggressive", requiredConditions: ["validity"], bonusConditions: [], forbiddenConditions: ["delivery_cond"], competitorPressure: true } },
+            { id: "L2-14", level: 2, customer: "LatAm Industrial EPC", application: "Ind. Wastewater", product: "MMO Anodes", quantity: "Project-based", delivery: "10–14 weeks", payment: "Not specified", targetPrice: "Budget sensitive", additionalInfo: "Technical params not defined", hint: "范围不清 + 付款不明 = 双重风险。", logic: { riskLevel: "high", optimalStrategy: "balanced", requiredConditions: ["tech_clarify", "payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L2-15", level: 2, customer: "Asian Li-Battery Maker", application: "Copper Foil Pilot", product: "DSA Anodes", quantity: "Pilot line set", delivery: "8–10 weeks", payment: "T/T 30% adv, 70% accept", targetPrice: "Benchmarking multi", additionalInfo: "High tech requirements", hint: "试产线决定未来产量。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["tech_clarify"], bonusConditions: ["validity"], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L2-16", level: 2, customer: "Euro Copper Equip Integrator", application: "Copper Foil Line", product: "Anodes + Cells", quantity: "1 line", delivery: "Project based", payment: "Milestone", targetPrice: "Integrated pricing", additionalInfo: "Long cycle, coordination needed", hint: "系统项目会惩罚报价过低。", logic: { riskLevel: "high", optimalStrategy: "conservative", requiredConditions: ["delivery_cond", "payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L2-17", level: 2, customer: "ME Water Authority", application: "Sea Water Electro", product: "Sea Water System", quantity: "Multiple units", delivery: "16–20 weeks", payment: "Gov payment (pending)", targetPrice: "Competitive tender", additionalInfo: "Strict compliance", hint: "合规需要成本。请将其计入价格。", logic: { riskLevel: "critical", optimalStrategy: "conservative", requiredConditions: ["tech_clarify", "payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L2-18", level: 2, customer: "North Am Eng Firm", application: "Adv Water R&D", product: "MMO Mesh Anodes", quantity: "Small batch", delivery: "Urgent (2 weeks)", payment: "Net 30 (pending credit)", targetPrice: "Not mentioned", additionalInfo: "Design subject to change", hint: "紧急是成本驱动因素，而非恩惠。", logic: { riskLevel: "high", optimalStrategy: "conservative", requiredConditions: ["payment_spec", "delivery_cond"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L2-19", level: 2, customer: "SE Asia Hydromet Owner", application: "Electrowinning", product: "MMO/DSA Anodes", quantity: "Project-based", delivery: "12 weeks", payment: "Not specified", targetPrice: "Budget discussion", additionalInfo: "Process params unclear", hint: "工艺不确定性必须澄清。", logic: { riskLevel: "high", optimalStrategy: "balanced", requiredConditions: ["tech_clarify", "payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L2-20", level: 2, customer: "Existing Ind. Client", application: "Upgraded Process", product: "Custom MMO Anodes", quantity: "50 pcs", delivery: "8 weeks", payment: "As per previous", targetPrice: "Expect similar price", additionalInfo: "Higher current density", hint: "相同客户不代表相同成本。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["tech_clarify"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            // --- Level 3 ---
+            { id: "L3-21", level: 3, customer: "North Am Tech Startup", application: "Adv Electrochem R&D", product: "Platinized Ti Anodes", quantity: "Small batch", delivery: "ASAP (1-2 weeks)", payment: "Net 60 (no credit)", targetPrice: "Not mentioned", additionalInfo: "Frequent spec changes", hint: "强劲的技术并不保证付款。", logic: { riskLevel: "critical", optimalStrategy: "conservative", requiredConditions: ["payment_spec", "delivery_cond", "tech_clarify"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L3-22", level: 3, customer: "African Gov Project", application: "Municipal CP + Water", product: "Anodes + System", quantity: "Project-based", delivery: "TBD", payment: "Gov funding (unclear)", targetPrice: "Budget capped", additionalInfo: "Multiple approval layers", hint: "政治项目隐藏着商业风险。", logic: { riskLevel: "critical", optimalStrategy: "conservative", requiredConditions: ["payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L3-23", level: 3, customer: "Global Strategic Client", application: "Multi-Project CP", product: "Multiple Anodes", quantity: "Annual agreement", delivery: "Rolling delivery", payment: "Quarterly settlement", targetPrice: "Y-O-Y reduction expected", additionalInfo: "High volume", hint: "框架协议是用利润交换稳定性。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["validity"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L3-24", level: 3, customer: "Existing Key Client", application: "Emergency CP Replace", product: "MMO Tubular Anodes", quantity: "30 pcs", delivery: "2 weeks (urgent)", payment: "As per contract", targetPrice: "Expect same price", additionalInfo: "Production under pressure", hint: "紧急是附加费用，而非恩惠。", logic: { riskLevel: "high", optimalStrategy: "conservative", requiredConditions: ["delivery_cond"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L3-25", level: 3, customer: "Euro Research Inst", application: "Material Research", product: "Custom MMO Anodes", quantity: "Prototype", delivery: "Flexible", payment: "Grant-based", targetPrice: "Cost transparency", additionalInfo: "Non-commercial criteria", hint: "研究项目不是标准销售。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["tech_clarify"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L3-26", level: 3, customer: "Asian Copper Foil Maker", application: "High-Speed Foil Line", product: "DSA Anodes", quantity: "Full production line", delivery: "Project based", payment: "Milestone", targetPrice: "Benchmarking global", additionalInfo: "Failure impacts entire line", hint: "这里一个错误就会造成数百万损失。", logic: { riskLevel: "critical", optimalStrategy: "conservative", requiredConditions: ["tech_clarify", "payment_spec", "delivery_cond"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L3-27", level: 3, customer: "Japanese Equipment Int", application: "Precision Process", product: "High-Spec MMO", quantity: "Custom batch", delivery: "Strict schedule", payment: "Net 60 days", targetPrice: "Quality prioritized", additionalInfo: "Extensive qual process", hint: "日本项目奖励的是精度，而非速度。", logic: { riskLevel: "high", optimalStrategy: "conservative", requiredConditions: ["tech_clarify"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } },
+            { id: "L3-28", level: 3, customer: "LatAm Mining Group", application: "Electrowinning", product: "MMO/DSA Anodes", quantity: "Large project", delivery: "14–18 weeks", payment: "Extended payment", targetPrice: "Negotiable", additionalInfo: "Complex approval", hint: "长付款周期必须定价。", logic: { riskLevel: "high", optimalStrategy: "conservative", requiredConditions: ["payment_spec"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L3-29", level: 3, customer: "Fast-Growing Overseas OEM", application: "Equip Manuf", product: "MMO Anodes", quantity: "Initial trial", delivery: "6 weeks", payment: "T/T 30% adv, 70% B/L", targetPrice: "Aggressive target", additionalInfo: "Claims future large volume", hint: "未来承诺不应抵消当前风险。", logic: { riskLevel: "medium", optimalStrategy: "balanced", requiredConditions: ["validity"], bonusConditions: [], forbiddenConditions: [], competitorPressure: true } },
+            { id: "L3-30", level: 3, customer: "Unknown Trading Co", application: "CP/Water (Unclear)", product: "MMO Anodes", quantity: "Unclear", delivery: "Urgent", payment: "Not mentioned", targetPrice: "Extremely low", additionalInfo: "Refuses details", hint: "不是所有询价都值得报价。", logic: { riskLevel: "critical", optimalStrategy: "conservative", requiredConditions: ["payment_spec", "tech_clarify"], bonusConditions: [], forbiddenConditions: [], competitorPressure: false } }
+        ];
+
+        const game = {
+            mode: 'training',
+            currentRound: 0,
+            sessionScenarios: [],
+            sessionResults: [], 
+            currentScenario: null,
+            selectedStrategy: null,
+            
+            elements: {
+                intro: document.getElementById('intro-screen'),
+                menuView: document.getElementById('menu-view'),
+                manualView: document.getElementById('manual-view'),
+                gameHeader: document.getElementById('game-header'),
+                gameMain: document.getElementById('game-main'),
+                gameFooter: document.getElementById('game-footer'),
+                summaryScreen: document.getElementById('summary-screen'),
+                roundDisplay: document.getElementById('round-display'),
+                modeDisplay: document.getElementById('mode-display'),
+                headerModeText: document.getElementById('header-mode-text'),
+                levelBadge: document.getElementById('level-badge'),
+                scenarioId: document.getElementById('scenario-id'),
+                inquiryContainer: document.getElementById('inquiry-container'),
+                mentorContainer: document.getElementById('mentor-container'),
+                mentorHint: document.getElementById('mentor-hint'),
+                strategyBtns: document.querySelectorAll('.strategy-btn'),
+                submitBtn: document.getElementById('submit-btn'),
+                explanation: document.getElementById('user-explanation'),
+                modal: document.getElementById('feedback-modal'),
+                assessmentDisclaimer: document.getElementById('assessment-disclaimer'),
+                feedbackContainer: document.getElementById('feedback-container'),
+                nextBtn: document.getElementById('next-round-btn'),
+                finishBtn: document.getElementById('finish-btn'),
+                detailScores: document.getElementById('detail-scores'),
+                scoreDetails: {
+                    strategy: document.getElementById('score-strategy'),
+                    risk: document.getElementById('score-risk'),
+                    conditions: document.getElementById('score-conditions'),
+                    explanation: document.getElementById('score-explanation')
+                }
+            },
+
+            showManual: function() {
+                this.elements.manualView.classList.add('active');
+                window.scrollTo(0,0);
+            },
+
+            backToMenu: function() {
+                this.elements.manualView.classList.remove('active');
+            },
+
+            start: function(selectedMode) {
+                this.mode = selectedMode;
+                this.sessionResults = []; 
+
+                this.elements.intro.style.display = 'none';
+                this.elements.gameHeader.style.display = 'flex';
+                this.elements.gameMain.style.display = 'grid';
+                this.elements.gameFooter.style.display = 'block';
+                
+                this.elements.headerModeText.innerText = this.mode === 'training' ? '训练模式' : '评估模式';
+
+                this.sessionScenarios = this.pickRandomScenarios();
+                this.loadRound(0);
+                
+                // Mobile scroll to top
+                window.scrollTo(0,0);
+            },
+
+            exit: function() {
+                if(confirm("确定要退出当前评估吗？\n当前进度将丢失。")) {
+                    this.resetUI();
+                }
+            },
+
+            resetUI: function() {
+                this.elements.gameHeader.style.display = 'none';
+                this.elements.gameMain.style.display = 'none';
+                this.elements.gameFooter.style.display = 'none';
+                this.elements.summaryScreen.style.display = 'none';
+                this.elements.modal.classList.remove('active');
+                this.elements.manualView.classList.remove('active');
+                
+                this.elements.intro.style.display = 'flex';
+                
+                this.currentRound = 0;
+                this.sessionResults = [];
+                this.sessionScenarios = [];
+                window.scrollTo(0,0);
+            },
+
+            pickRandomScenarios: function() {
+                if (this.mode === 'assessment') {
+                    const l3Crit = scenarios.filter(s => s.level === 3 && s.logic.riskLevel === 'critical');
+                    const pickL3 = l3Crit[Math.floor(Math.random() * l3Crit.length)];
+
+                    const unclearRisk = scenarios.filter(s => 
+                        (s.payment.includes('Not') || s.payment.includes('Unclear') || s.payment.includes('Pending') || s.delivery.includes('Urgent')) 
+                        && s.id !== pickL3.id
+                    );
+                    let pickRisk;
+                    if (unclearRisk.length > 0) {
+                        pickRisk = unclearRisk[Math.floor(Math.random() * unclearRisk.length)];
+                    } else {
+                        pickRisk = scenarios.filter(s => s.id !== pickL3.id)[Math.floor(Math.random() * 29)];
+                    }
+
+                    const remaining = scenarios.filter(s => s.id !== pickL3.id && s.id !== pickRisk.id);
+                    const pickFill = remaining[Math.floor(Math.random() * remaining.length)];
+
+                    return [pickL3, pickRisk, pickFill].sort(() => 0.5 - Math.random());
+                } else {
+                    return scenarios.sort(() => 0.5 - Math.random()).slice(0, 3);
+                }
+            },
+
+            loadRound: function(roundIndex) {
+                this.currentRound = roundIndex;
+                this.currentScenario = this.sessionScenarios[roundIndex];
+                this.selectedStrategy = null;
+                
+                this.elements.roundDisplay.innerText = `${roundIndex + 1}/${this.sessionScenarios.length}`;
+                this.elements.modeDisplay.innerText = this.mode === 'training' ? 'TRAINING' : 'ASSESSMENT';
+                this.elements.scenarioId.innerText = this.currentScenario.id;
+                
+                const lvl = this.currentScenario.level;
+                this.elements.levelBadge.innerText = lvl === 1 ? "L1" : (lvl === 2 ? "L2" : "L3");
+                this.elements.levelBadge.className = `level-badge l${lvl}`;
+
+                document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+                this.elements.explanation.value = "";
+                this.elements.strategyBtns.forEach(btn => btn.classList.remove('selected'));
+                this.elements.submitBtn.disabled = true;
+
+                const s = this.currentScenario;
+                const html = `
+                    <div class="inquiry-paper">
+                        <div class="data-row"><span class="data-label">客户类型:</span><span class="data-value">${s.customer}</span></div>
+                        <div class="data-row"><span class="data-label">应用场景:</span><span class="data-value">${s.application}</span></div>
+                        <div class="data-row"><span class="data-label">产品类型:</span><span class="data-value">${s.product}</span></div>
+                        <div class="data-row"><span class="data-label">数量:</span><span class="data-value">${s.quantity}</span></div>
+                        <div class="data-row"><span class="data-label">交期要求:</span><span class="data-value">${s.delivery}</span></div>
+                        <div class="data-row"><span class="data-label">付款条件:</span><span class="data-value ${s.payment.includes('Not') || s.payment.includes('Unclear') || s.payment.includes('Pending') ? 'highlight-bad' : ''}">${s.payment}</span></div>
+                        <div class="data-row"><span class="data-label">价格预期:</span><span class="data-value">${s.targetPrice}</span></div>
+                        <div class="data-row" style="border:none"><span class="data-label">补充说明:</span><span class="data-value">${s.additionalInfo}</span></div>
+                    </div>
+                `;
+                this.elements.inquiryContainer.innerHTML = html;
+
+                if (this.mode === 'assessment') {
+                    this.elements.mentorContainer.style.display = 'none';
+                } else {
+                    this.elements.mentorContainer.style.display = 'block';
+                    this.elements.mentorHint.innerText = s.hint;
+                    this.elements.mentorHint.style.color = "#9a3412";
+                    this.elements.mentorContainer.style.borderColor = "#f97316";
+                }
+                
+                // Scroll to top of main
+                window.scrollTo(0, 0);
+            },
+
+            selectStrategy: function(strategy, btnElement) {
+                this.selectedStrategy = strategy;
+                this.elements.strategyBtns.forEach(b => b.classList.remove('selected'));
+                btnElement.classList.add('selected');
+                this.checkSubmitState();
+                this.updateMentorHint();
+            },
+
+            updateMentorHint: function() {
+                if (this.mode === 'assessment') return;
+                const strategy = this.selectedStrategy;
+                const checkedBoxes = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                const baseHint = this.currentScenario.hint;
+                const logic = this.currentScenario.logic;
+                
+                let dynamicWarning = null;
+                const hintEl = this.elements.mentorHint;
+                const hintContainer = this.elements.mentorContainer;
+
+                if (strategy === 'aggressive' && !checkedBoxes.includes('payment_spec')) {
+                    dynamicWarning = "⚠ 风险提示：当前定价策略未覆盖付款风险。";
+                } 
+                else if (logic.riskLevel === 'critical' && strategy !== 'conservative') {
+                    dynamicWarning = "⚠ 风险提示：关键风险场景要求采用保守型定价。";
+                }
+                else if (this.currentScenario.level === 2 && logic.optimalStrategy === 'aggressive' && strategy === 'balanced') {
+                    dynamicWarning = "⚠ 风险提示：此OEM场景更适合激进定价以换取长期合作。";
+                }
+
+                if (dynamicWarning) {
+                    hintEl.innerText = dynamicWarning;
+                    hintEl.style.color = "#ef4444";
+                    hintContainer.style.borderColor = "#ef4444";
+                } else {
+                    hintEl.innerText = baseHint;
+                    hintEl.style.color = "#9a3412";
+                    hintContainer.style.borderColor = "#f97316";
+                }
+            },
+
+            checkSubmitState: function() {
+                const text = this.elements.explanation.value.trim();
+                this.elements.submitBtn.disabled = !(this.selectedStrategy && text.length > 10);
+            },
+
+            submitQuote: function() {
+                const result = this.calculateScore();
+                
+                this.sessionResults.push({
+                    scenarioId: this.currentScenario.id,
+                    level: this.currentScenario.level,
+                    score: result.scores.total,
+                    isBlocked: result.isManagementBlock,
+                    detail: result.scores
+                });
+
+                this.showFeedback(result);
+            },
+
+            calculateScore: function() {
+                const lvl = this.currentScenario.level;
+                const logic = this.currentScenario.logic;
+                const checkedBoxes = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+                const explanationText = this.elements.explanation.value.toLowerCase();
+                
+                let scores = { strategy: 0, risk: 0, conditions: 0, explanation: 0, total: 0 };
+                let feedback = [];
+                let isManagementBlock = false;
+
+                // Strategy Scoring
+                if (lvl === 1) {
+                    if (this.selectedStrategy === logic.optimalStrategy) scores.strategy = 30;
+                    else if (this.selectedStrategy === 'balanced') scores.strategy = 25;
+                    else scores.strategy = 10;
+                    if (logic.riskLevel === 'high' && this.selectedStrategy === 'aggressive') {
+                        scores.strategy = 10;
+                        feedback.push({ type: 'error', title: '新手风险', msg: '不要在高风险项目上采用激进的定价进行赌博。' });
+                    }
+                } else if (lvl === 2) {
+                    if (this.selectedStrategy === logic.optimalStrategy) scores.strategy = 30;
+                    else if (this.selectedStrategy === 'balanced') {
+                        scores.strategy = 20;
+                        feedback.push({ type: 'warning', title: '错失机会', msg: '平衡是安全的，但您错过了本场景的最佳权衡。' });
+                    } else {
+                        scores.strategy = 10;
+                    }
+                } else {
+                    if (this.selectedStrategy === logic.optimalStrategy) scores.strategy = 30;
+                    else if (this.selectedStrategy === 'balanced') {
+                        if (logic.riskLevel === 'critical') {
+                            scores.strategy = 5;
+                            feedback.push({ type: 'error', title: '低估风险', msg: '在关键风险场景中，平衡策略依然过于危险。' });
+                        } else {
+                            scores.strategy = 15;
+                        }
+                    } else {
+                        scores.strategy = 0;
+                        isManagementBlock = true;
+                        feedback.push({ type: 'error', title: '管理层否决', msg: '在此场景下禁止使用激进定价。' });
+                    }
+                }
+
+                // Risk Scoring
+                let riskScore = 25;
+                const missingRequired = logic.requiredConditions.filter(req => !checkedBoxes.includes(req));
+                if (missingRequired.length > 0) {
+                    riskScore -= (missingRequired.length * 10);
+                    feedback.push({ type: 'warning', title: '未保护的风险', msg: `缺失条款: ${missingRequired.join(", ")}。` });
+                }
+                if (lvl === 3) {
+                    if (missingRequired.length > 0) riskScore = 0;
+                    if (logic.riskLevel === 'critical' && this.selectedStrategy !== 'conservative') riskScore = 0;
+                }
+                scores.risk = Math.max(0, riskScore);
+
+                // Conditions Scoring
+                let condScore = 10;
+                if (checkedBoxes.length === 0) condScore = 0;
+                const hitBonus = logic.bonusConditions.filter(b => checkedBoxes.includes(b));
+                condScore += (hitBonus.length * 3);
+                if (lvl >= 2) {
+                    const hitForbidden = logic.forbiddenConditions.filter(f => checkedBoxes.includes(f));
+                    if (hitForbidden.length > 0) {
+                        condScore -= (hitForbidden.length * 10);
+                        feedback.push({ type: 'warning', title: '过度控制', msg: '您在此处添加了损害交易灵活性的条款。' });
+                    }
+                }
+                scores.conditions = Math.max(0, Math.min(15, condScore));
+
+                // Explanation Scoring
+                const logicPatterns = ["因为", "由于", "因此", "考虑到", "导致", "基于", "为了", "所以"];
+                const hasLogic = logicPatterns.some(p => explanationText.includes(p));
+                const keywords = ["成本", "风险", "利润", "竞争", "质量", "市场", "交期", "付款"];
+                let keywordCount = 0;
+                keywords.forEach(k => { if (explanationText.includes(k)) keywordCount++; });
+
+                if (explanationText.length < 20) {
+                    scores.explanation = 5;
+                    feedback.push({ type: 'warning', title: '说明不足', msg: this.mode === 'assessment' ? '决策说明不足，无法支撑报价判断。' : '管理者需要更多推理依据。' });
+                } else {
+                    scores.explanation = 10;
+                    if (hasLogic) scores.explanation += 10;
+                    else if (lvl >= 2 && keywordCount > 2) {
+                        scores.explanation -= 5;
+                        feedback.push({ type: 'warning', title: '逻辑缺失', msg: this.mode === 'assessment' ? '决策说明缺乏明确因果逻辑。' : '您列举了因素，但未解释因果联系。' });
+                    }
+                    scores.explanation += Math.min(10, keywordCount * 2);
+                }
+
+                if (isManagementBlock) {
+                    scores.total = Math.min(scores.total, 50);
+                    feedback.unshift({ type: 'block', title: '管理层否决', msg: '该报价决策违反公司风险控制要求，不允许进行独立报价，需提交管理层审批。' });
+                } else {
+                    scores.total = Math.min(100, scores.strategy + scores.risk + scores.conditions + scores.explanation);
+                }
+
+                let outcome = "";
+                if (isManagementBlock) {
+                    outcome = "已触发管理层否决。邮件未发送。";
+                } else if (scores.total < 60) {
+                    outcome = "报价已发送，但内部审批因利润/风险问题未通过。";
+                } else if (scores.total < 80) {
+                    outcome = "报价已发送，但客户要求进一步澄清或调整。";
+                } else {
+                    outcome = "报价通过内部审批，具备谈判优势。";
+                }
+
+                return { scores, feedback, outcome, isManagementBlock };
+            },
+
+            showFeedback: function(result) {
+                const { scores, feedback, outcome, isManagementBlock } = result;
+                
+                document.getElementById('modal-score').innerText = scores.total;
+                
+                if (this.mode === 'assessment') {
+                    this.elements.detailScores.style.display = 'none';
+                    this.elements.assessmentDisclaimer.style.display = 'block';
+                } else {
+                    this.elements.detailScores.style.display = 'grid';
+                    this.elements.assessmentDisclaimer.style.display = 'none';
+                    this.elements.scoreDetails.strategy.innerText = `${scores.strategy}/30`;
+                    this.elements.scoreDetails.risk.innerText = `${scores.risk}/25`;
+                    this.elements.scoreDetails.conditions.innerText = `${scores.conditions}/15`;
+                    this.elements.scoreDetails.explanation.innerText = `${scores.explanation}/30`;
+                }
+
+                let fbHtml = '';
+
+                if (this.mode === 'assessment') {
+                    let authStatus = "";
+                    let authClass = "";
+                    if (isManagementBlock) {
+                        authStatus = "❌ 不具备报价资格";
+                        authClass = "color: #ef4444; border-color: #ef4444;";
+                    } else if (scores.total >= 80) {
+                        authStatus = "✅ 授权通过";
+                        authClass = "color: #10b981; border-color: #10b981;";
+                    } else {
+                        authStatus = "⚠️ 需复核";
+                        authClass = "color: #f59e0b; border-color: #f59e0b;";
+                    }
+
+                    fbHtml += `
+                        <div class="feedback-section authority" style="border:${authClass}">
+                            <h4 style="margin-bottom:5px; font-size:1.1rem; ${authClass.split(';')[0]}">${authStatus}</h4>
+                            <div style="font-size:0.85rem; opacity:0.8;">
+                                ${isManagementBlock ? "不允许独立报价。" : (scores.total >= 80 ? "具备当前授权范围内的独立报价资格。" : "需主管复核后方可独立报价。")}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                fbHtml += `<div class="feedback-section outcome"><span class="feedback-title" style="color:var(--primary-color)">📉 可能结果评估</span>${outcome}</div>`;
+
+                if (this.mode === 'training') {
+                    feedback.forEach(f => {
+                        fbHtml += `<div class="feedback-section ${f.type}"><span class="feedback-title">${f.title}</span>${f.msg}</div>`;
+                    });
+                    if (!isManagementBlock && scores.total >= 90) {
+                        fbHtml += `<div class="feedback-section success"><span class="feedback-title">决策优秀</span>完美平衡了风险与回报。</div>`;
+                    }
+                } else {
+                    if (isManagementBlock) {
+                        // Handled in Authority block
+                    } else if (scores.total < 60) {
+                        fbHtml += `<div class="feedback-section error"><span class="feedback-title">评估结论</span>商业意识尚需提升。</div>`;
+                    }
+                }
+
+                this.elements.feedbackContainer.innerHTML = fbHtml;
+                this.elements.modal.classList.add('active');
+
+                if (this.currentRound < this.sessionScenarios.length - 1) {
+                    this.elements.nextBtn.style.display = 'block';
+                    this.elements.finishBtn.style.display = 'none';
+                } else {
+                    this.elements.nextBtn.style.display = 'none';
+                    this.elements.finishBtn.style.display = 'block';
+                }
+            },
+
+            nextRound: function() {
+                this.elements.modal.classList.remove('active');
+                setTimeout(() => { this.loadRound(this.currentRound + 1); }, 300);
+            },
+
+            finish: function() {
+                this.elements.modal.classList.remove('active');
+                this.showSessionSummary();
+            },
+
+            showSessionSummary: function() {
+                const results = this.sessionResults;
+                const avg = Math.round(results.reduce((a,b)=>a+b.score,0) / results.length);
+                const min = Math.min(...results.map(r=>r.score));
+                const blockCount = results.filter(r=>r.isBlocked).length;
+
+                const statsHtml = `
+                    <div class="summary-module">
+                        <div class="module-title">📊 评估概览</div>
+                        <div class="stat-row"><span>模式:</span> <span class="stat-value" style="text-transform:uppercase">${this.mode}</span></div>
+                        <div class="stat-row"><span>总题数:</span> <span class="stat-value">${results.length}</span></div>
+                        <div class="stat-row"><span>平均分:</span> <span class="stat-value ${avg >= 80 ? 'green' : (avg < 60 ? 'red' : '')}">${avg} / 100</span></div>
+                        <div class="stat-row"><span>最低分:</span> <span class="stat-value ${min < 60 ? 'red' : ''}">${min} / 100</span></div>
+                        <div class="stat-row"><span>管理层否决:</span> <span class="stat-value ${blockCount > 0 ? 'red' : 'green'}">${blockCount}</span></div>
+                    </div>
+                `;
+
+                let riskWarningHtml = '';
+                const hasCriticalFail = results.some(r => r.isBlocked || r.score < 60);
+                
+                if (hasCriticalFail) {
+                    riskWarningHtml = `
+                        <div class="summary-module" style="border-color: var(--danger-color); background: #fef2f2;">
+                            <div class="module-title" style="color: var(--danger-color)">🚨 检测到关键风险</div>
+                            <p style="font-size: 0.85rem;">您至少在一个涉及付款或交期不确定的场景中低估了风险，或未达到授权要求。</p>
+                        </div>
+                    `;
+                } else {
+                    riskWarningHtml = `
+                        <div class="summary-module" style="border-color: var(--success-color); background: #f0fdf4;">
+                            <div class="module-title" style="color: var(--success-color)">✅ 风险控制一致性良好</div>
+                            <p style="font-size: 0.85rem;">未检测到关键否决项。风险意识稳定。</p>
+                        </div>
+                    `;
+                }
+
+                const avgStrat = Math.round(results.reduce((a,b)=>a+b.detail.strategy,0) / results.length);
+                const avgRisk = Math.round(results.reduce((a,b)=>a+b.detail.risk,0) / results.length);
+                const avgExp = Math.round(results.reduce((a,b)=>a+b.detail.explanation,0) / results.length);
+
+                const getLabel = (score) => {
+                    if(score > 25) return { text: "强", class: "green" };
+                    if(score > 18) return { text: "中", class: "" };
+                    return { text: "弱", class: "red" };
+                };
+
+                const capHtml = `
+                    <div class="summary-module">
+                        <div class="module-title">🧩 能力结构</div>
+                        <div class="cap-item"><span>策略判断力:</span> <span class="stat-value ${getLabel(avgStrat).class}">${getLabel(avgStrat).text} (${avgStrat}/30)</span></div>
+                        <div class="cap-item"><span>风险控制力:</span> <span class="stat-value ${getLabel(avgRisk).class}">${getLabel(avgRisk).text} (${avgRisk}/25)</span></div>
+                        <div class="cap-item"><span>逻辑表达力:</span> <span class="stat-value ${getLabel(avgExp).class}">${getLabel(avgExp).text} (${avgExp}/30)</span></div>
+                    </div>
+                `;
+
+                let authHtml = "";
+                
+                if (this.mode === 'training') {
+                    authHtml = `
+                        <div class="authority-block">
+                            <div style="opacity:0.8; text-transform:uppercase; font-size:0.8rem;">训练结果</div>
+                            <div class="authority-status">练习完成</div>
+                            <div class="authority-sub">
+                                建议关注重点：${avgRisk < 20 ? "条款不明确情况下的风险控制。" : "战略性的权衡取舍。"}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    let status = "";
+                    let color = "";
+                    let msg = "";
+                    let scopeText = "";
+
+                    if (blockCount > 0 || min < 60) {
+                        status = "❌ 不具备报价资格";
+                        color = "#ef4444";
+                        msg = "因风险暴露问题，不允许进行独立报价。";
+                        scopeText = "适用范围：仅限主管审批后报价";
+                    } else if (avg >= 80) {
+                        status = "✅ 授权通过";
+                        color = "#10b981";
+                        msg = "具备在当前授权范围内处理报价业务的资格。";
+                        scopeText = "适用范围：常规项目 / 非政府项目 / 非高风险付款条件";
+                    } else {
+                        status = "⚠️ 需复核";
+                        color = "#f59e0b";
+                        msg = "需在主管复核后方可进行独立报价。";
+                        scopeText = "适用范围：仅限主管审批后报价";
+                    }
+
+                    const consistencyNote = "<p class='policy-note'>📌 制度说明：需连续 2 次 Assessment 通过，方可授予长期报价权限。</p>";
+
+                    authHtml = `
+                        <div class="authority-block" style="background-color: ${color};">
+                            <div style="opacity:0.9; text-transform:uppercase; font-size:0.8rem;">报价授权结论</div>
+                            <div class="authority-status">${status}</div>
+                            <div class="authority-sub">
+                                ${msg}<br>
+                                <div class="authority-scope">${scopeText}</div>
+                                ${consistencyNote}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const finalHtml = `
+                    <div class="summary-grid">
+                        ${statsHtml}
+                        ${riskWarningHtml}
+                        ${capHtml}
+                    </div>
+                    ${authHtml}
+                `;
+
+                document.getElementById('summary-content').innerHTML = finalHtml;
+
+                this.elements.gameHeader.style.display = 'none';
+                this.elements.gameMain.style.display = 'none';
+                this.elements.gameFooter.style.display = 'none';
+                this.elements.summaryScreen.style.display = 'block';
+                window.scrollTo(0,0);
+            }
+        };
+
+        document.getElementById('user-explanation').addEventListener('input', () => { game.checkSubmitState(); });
+
+    </script>
+</body>
+</html>
